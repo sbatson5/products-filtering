@@ -1,4 +1,4 @@
-const PRODUCTS_STORE = new ProductStore();
+const ProductsStore = new ProductStore();
 
 const TYPE_OPERATORS = {
   string: ['equals', 'any', 'none', 'in', 'contains'],
@@ -17,7 +17,7 @@ const TYPE_OPERATORS = {
   });
 
   document.querySelector('#clear-button').addEventListener('click', function() {
-    PRODUCTS_STORE.resetProducts();
+    ProductsStore.resetProducts();
     clearTable();
     populateTable();
   });
@@ -53,7 +53,7 @@ function createTableHeader() {
 }
 
 function populateTable() {
-  let products = PRODUCTS_STORE.products;
+  let products = ProductsStore.products;
 
   let tableElement = document.querySelector('#products-data-table');
   products.forEach((product) => {
@@ -98,7 +98,7 @@ function filterProducts() {
   let operatorValue = document.querySelector('#operator-dropdown').value;
   let selectedValue = _getValueSelections();
 
-  PRODUCTS_STORE.applyFilter(property, operatorValue, selectedValue);
+  ProductsStore.applyFilter(property, operatorValue, selectedValue);
   populateTable();
 }
 

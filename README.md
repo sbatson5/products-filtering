@@ -1,36 +1,32 @@
 # Product Filtering Condition Editor UI
 A Coding Exercise for UI Developers
 
-# Introduction
+## My Approach
 
-Many capabilities of Salsify are built around filtered sets of products. Products at Salsify consist of properties and their values. Properties have a datatype.
+My initial thought was to do this in Ember, since that's where most of experience is and since it's the framework being used presently.
+However, I decided I have enough examples speaking to my experience with Ember and decided to approach this with plain JavaScript (no jQuery, no Node.js).
 
-In order to create filtered sets of products in Salsify we created a condition editor. This editor is used to build a filter that Salsify applies to the full set of products. The resulting set of products, presented as a list, is updated as filters are added or changed.
+## Creating the table
 
-In order to create a filter users must choose a property, an operator, and one or more values. Due to the differences in property datatypes, not all operators apply to all properties.
+The first problem to solve was creating the table, since I had a variable number of products and variable number of properties.  In my HTML, I simply added a `<table id="products-data-table"></table>` element and nothing else.  The rows would have to be added dynamically since I couldn't rely on getting the same properties and items from the datastore.  I _did_ make the assumption that the properties and products would always follow the same format, however.
 
-To complete this exercise please build a user interface to create a filter and update a list of products to reflect the results. Use the exercise to demonstrate not only a solution to the problem but your approach to software design and testing.
+The very first function to run in my `scripts.js` file is `createTableHeader`, which literally creates the column headers by mapping the property names returned from the datastore.  I iterate over those names and create a `th` element for each.  This gives me the flexibility of accepting any number of properties (given that they follow the same format of having a `name` value);
 
-Provide us with an archive containing the results of your work and a README file with a guided tour of your work, notes on your development process, how long you spent on the exercise, what assumptions you made, etc.  If you wish, this may also be presented as a live site.  In that case simply provide a link to the site and the README file mentioned above.
+The next thing I did was try to populate the table.  Similar to column headers, I needed to create these dynamically from a list of all the products.  Without going into too much details (since it was tedious), I did the same thing as before. Iterated over the products, creating a row for each, and then iterated over the _properties_ of those products to create `td` elements for each row.  Now I had a fully built HTML table.
 
-# Specification
+## Filtering
 
-This repository contains a mock `datastore` which includes sample products, property definitions including data types, and the complete set of filter operator. Using this datastore please create a web user interface with the following behavior:
+The problem, however, was filtering down this collection of products and building the table from the filtered collection.  I knew that I didn't want to update the datastore directly, as I could lose records without any way of getting the back in a given session.  This is why I created a `product-store` class.  With this, I could copy from the global datastore, isolate all my filtering logic to one class and be able to reset at any time.  When thinking down the line, this would also make it easier if I wanted to add the ability for multiple filters (not done in this exercise, but having this class maintain state meant I could keep filtering the collection).  The `ProductStore` would take care of filtering the collection, dynamically calling the appropriate method based on the passed operator.
 
-* A user can create a single filter
-* Filters have the form `[property] [operator] [property value]`
-* Creating or updating a filter causes the the list of products to update
-* A user can clear the filter to see all products
+So now I had a full table and I could call the `applyFilter` method and pass it the values I needed.  The next problem to solve was building the inputs that allowed the user to select how they wanted to filter the collection.  Similarly, I dynamically created the initial `select` for which field the user wanted to filter on, as this would always be the same based on the values from the datastore.  This select drives most of the logic as a `string` based field will only have some operators and a text input while an `enumerated` based field would different operators and a select input.  I added an event listener to this select, which triggered the logic to build the other inputs based on the selections.
 
-Included are [wireframes](http://salsify.github.io/condition-editor-coding-exercise/docs/wireframe.pdf) to illustrate a potential implementation. Feel free to approach this solution in the manner you see fit, but keep in mind we will evaluate your submission more on software design than user experience.
+Now I had the second select being built dynamically, with the options populated based on the field type (i.e. `string` versus `number`).  I then had to add _another_ event listener to _this_ select, however, as the last input could changed based on the selection here.  For example, an `enumerated` field could be a single select or a multiple select based on the operator selected.  Once again, I had an HTML element being dynamically created based on user selections.
 
-# Tips and Recommendations
-- No other Operators or data types will be introduced; they are static.
-- Properties and Products vary from customer to customer, you cannot depend on having the same properties or products available each time this application loads
+To apply the filter, I decided to force the user to click the `Apply` button.  Performance-wise, it's not that bad to have it update on every keystroke when the collection is this small, but if this were a promise-based system or if there were thousands of records, it would be too cumbersome.
 
-## Properties Types/Operators
+## Tests
 
-Operators define the relationship between properties and property values. Certain operators are only valid for certain property types. The behavior of each operator and the valid operators for each property type are defined as follows:
+I used QUnit to write tests for the page (as that's what I'm most familiar with).  You can see them run in the `tests.html` file (they are written in `tests.js`).  I decided to do more acceptance-level testing as the application is so UI based -- unit tests wouldn't document it very well.  I cover cases of filtering by each type and asserting the write inputs are shown based on the user selection.  There are almost 300 lines of tests but they are mostly the same thing with different input types (I separated them by `modules` to make it easier to read).
 
 | Operator | Description |
 -----------|--------------
