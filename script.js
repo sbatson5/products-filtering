@@ -6,6 +6,8 @@ const TYPE_OPERATORS = {
   enumerated: ['equals', 'any', 'none', 'in']
 };
 
+let numberOfColumns;
+
 (function() {
   createTableHeader();
   populateTable();
@@ -40,6 +42,7 @@ function createTableHeader() {
   let propertyNames = datastore.getProperties().map((property) => {
     return property.name;
   });
+  numberOfColumns = propertyNames.length;
   let tableElement = document.querySelector('#products-data-table');
   let headerRow = document.createElement('tr');
   headerRow.classList.add('header-row');
@@ -69,11 +72,24 @@ function createTableRow(product) {
   let tableRowElement = document.createElement('tr');
   tableRowElement.classList.add('product-item');
 
-  product.property_values.forEach((property) => {
+  let propertyValues = product.property_values;
+
+  propertyValues.forEach((property, index) => {
     let tableDataElement = document.createElement('td');
     tableDataElement.textContent = property.value;
+
+    // Since not all products have every property listed, we update
+    // the colSpan of the last td element to ensure it fills the table
+    if (index == propertyValues.length - 1) {
+      let remainingColumnsToFill = numberOfColumns - propertyValues.length;
+      if (remainingColumnsToFill > 0) {
+        tableDataElement.colSpan = remainingColumnsToFill + 1;
+      }
+    }
+
     tableRowElement.appendChild(tableDataElement);
   });
+
   return tableRowElement;
 }
 

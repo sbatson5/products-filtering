@@ -1,0 +1,20 @@
+#products-data-table {
+  width: 80%;
+  border: 1px solid black;
+  border-spacing: 0;
+}
+
+.header-row {
+  font-size: 1.5rem;
+  background-color: #bbb;
+}
+
+.product-item {
+  height: 40px;
+  font-size: 1.25rem;
+  border-top: 1px solid black;
+}
+
+.product-item:nth-child(even) {
+  background-color: #ddd;
+}

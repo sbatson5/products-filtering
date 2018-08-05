@@ -3,7 +3,7 @@ class ProductStore {
     this.products = datastore.getProducts();
   }
 
-  get originalProdicts() {
+  get originalProducts() {
     return datastore.getProducts();
   }
 
