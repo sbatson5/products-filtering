@@ -6,8 +6,13 @@ const TYPE_OPERATORS = {
   enumerated: ['equals', 'any', 'none', 'in']
 };
 
+// this becomes the one stateful piece in this code (aside from the store)
+// this is only used because not all products have every field
+// but I wanted the table rows to span the full width
+// this could also be solved by _not_ using a table
 let numberOfColumns;
 
+// our initial setup, automatically invoked
 (function() {
   createTableHeader();
   populateTable();
@@ -32,12 +37,14 @@ let numberOfColumns;
   });
 })();
 
+// create the additional inputs based on the first selection
 function createSecondaryInputs(type, values) {
   createOperatorDropdown(type);
   createValueInput(type, values);
   observeOperator();
 }
 
+// Dynamically create the table headers based on the provided categories
 function createTableHeader() {
   let propertyNames = datastore.getProperties().map((property) => {
     return property.name;
@@ -106,7 +113,7 @@ function createPropertySelect() {
 }
 
 function filterProducts() {
-  clearTable();
+  clearTable(false);
   let properties = datastore.getProperties();
   let selectedIndex = getSelectedField();
 
@@ -122,19 +129,23 @@ function getSelectedField() {
   return document.querySelector('#property-name').value;
 }
 
-function clearTable() {
+// resets the table and clears the last input
+function clearTable(shouldClearInput = true) {
   let productRows = document.querySelectorAll('.product-item');
   productRows.forEach((row) => row.remove());
+  if (shouldClearInput) {
+    document.querySelector('#value-input').value = '';
+  }
 }
 
 function createOperatorDropdown(type) {
-  let existingOperator = document.querySelector('#operator-dropdown');
-  if (existingOperator) {
-    existingOperator.remove();
-  }
+  _deleteExistingElement('#operator-dropdown');
   let newOperatorSelect = document.createElement('select');
   newOperatorSelect.id = 'operator-dropdown';
+
   let operatorList = datastore.getOperators();
+
+  // we use the defined const above to figure out which operators we want
   TYPE_OPERATORS[type].forEach((operator) => {
     let { text } = operatorList.find((operatorItem) => operatorItem.id === operator);
     _createOption(newOperatorSelect, operator, text);
@@ -143,10 +154,7 @@ function createOperatorDropdown(type) {
 }
 
 function createValueInput(type, values) {
-  let existingValueInput = document.querySelector('#value-input');
-  if (existingValueInput) {
-    existingValueInput.remove();
-  }
+  _deleteExistingElement('#value-input');
   let newValueInput;
 
   if (type == 'enumerated' && values.length) {
@@ -161,6 +169,8 @@ function createValueInput(type, values) {
   document.querySelector('#filter-selection-wrapper').appendChild(newValueInput);
 }
 
+// we have to observe this input as it controls whether the final input
+// is a single or multi-select
 function observeOperator() {
   document.querySelector('#operator-dropdown').addEventListener('change', function(event) {
     let selectValue = document.querySelector('select#value-input');
@@ -175,6 +185,7 @@ function observeOperator() {
   });
 }
 
+// this logic was repeated throughout, so DRY'd up a bit here
 function _createOption(parentElement, value, name) {
   let optionElement = document.createElement('option');
   optionElement.value = value;
@@ -185,10 +196,20 @@ function _createOption(parentElement, value, name) {
 function _getValueSelections() {
   let valueInput = document.querySelector('#value-input');
   if (valueInput.multiple) {
+    // the `options` property returns HTMLOptionsCollection which is not
+    // a normal JS Array and therefore does not inheret the `map` method
+    // the final `filter` call simply strips away any `undefined` props
     return Array.from(valueInput.options)
       .map((option) => option.selected ? option.value : undefined)
       .filter((value) => value);
   } else {
     return valueInput.value;
+  }
+}
+
+function _deleteExistingElement(selector) {
+  let existingElement = document.querySelector(selector);
+  if (existingElement) {
+    existingElement.remove();
   }
 }
